@@ -1,0 +1,145 @@
+---
+title: "Colegio Francisco I Madero -- Reporte Nivel I"
+date: 'Martes 17 Marzo 2020'
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    #logo: img/sea.png
+    favicon: img/favicon.ico
+    #vertical_layout: fill
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(googlesheets4)
+
+sheets_auth(email = 'gener.aviles@uabc.edu.mx')
+cofim <- read_sheet('https://docs.google.com/spreadsheets/d/1j8W_FThLFnsBVW9I1Gbjh-OTbtrHXnIIv_hUDGd0A8Y/edit#gid=440689943')
+```
+
+
+Generalidades
+===================================== 
+
+Row
+-------------------------------------
+
+### Estudiantes de Primaria Que Llenaron Filtro Digital
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(flexdashboard)
+
+nivel <- as.data.frame(table(cofim$`Nivel Educativo`))
+#gauge(round((nivel[1,2]/sum(nivel[,2]))*100,1), min = 0, max = 100, symbol = '%', gaugeSectors(
+#  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+#))
+
+valueBox(nivel[1,2], icon = "fa-child", href = '#detallesGrados')
+```
+
+### Estudiantes de Secundaria Que Llenaron Filtro Digital
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#library(flexdashboard)
+#gauge(round((nivel[2,2]/sum(nivel[,2]))*100,1), min = 0, max = 100, symbol = '%', gaugeSectors(
+#  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+#))
+valueBox(nivel[2,2], icon = "fa-user-graduate", href = '#detallesGrados')
+```
+
+Row
+-------------------------------------
+
+### Estudiantes De Primaria Que NO Asistirán
+```{r}
+asistenciaPrim <- as.data.frame(table(cofim$`Asístiré hoy a clase`,useNA = 'ifany'))
+valueBox(asistenciaPrim[1,2], icon = "fa-exclamation-triangle",
+         color = ifelse(asistenciaPrim[1,2] > 1, "danger"), href = '#detallesAsistencia')
+```
+
+### Estudiantes De Secundaria Que NO Asistirán
+```{r}
+asistenciaSecu <- as.data.frame(table(cofim$`Asistiré hoy a clase`,useNA = 'ifany'))
+valueBox(asistenciaSecu[1,2], icon = "fa-exclamation-circle",
+         color = ifelse(asistenciaSecu[1,2] > 1, "danger"), href = '#detallesAsistencia')
+```
+
+Row
+---------------------------------------------
+
+\center Análisis y Visualizaciones por ![](img/GEAR logo.png){width=10%} y ![](img/CAREd.png){width=12%} para el Sistema Educativo Adventista Zona 1 \center
+
+Detalles Por Grados {#detallesGrados}
+===================================== 
+
+Row
+----------------------------------------
+
+### Reportes Digitales por Grado en Primaria
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+#cofim$`Grado (Primaria)`
+
+primaria <- cofim %>%
+  group_by(cofim$`Grado (Primaria)`) %>%
+  summarise(counts = n())
+
+names(primaria) <- c('Grado', 'Conteo')
+
+ggplot(primaria, aes(x = Grado, y = Conteo)) +
+  geom_bar(fill = '#003756', stat = 'identity') +
+  geom_text(aes(label = Conteo), vjust = -0.3) 
+```
+
+### Reportes Digitales por Grado en Secundaria
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+secundaria <- cofim %>%
+  group_by(cofim$`Grado (Secundaria)`) %>%
+  summarise(counts = n())
+
+names(secundaria) <- c('Grado', 'Conteo')
+
+ggplot(secundaria, aes(x = Grado, y = Conteo)) +
+  geom_bar(fill = '#003756', stat = 'identity') +
+  geom_text(aes(label = Conteo), vjust = -0.3) 
+```
+
+
+
+Detalles Inasistencias {#detallesAsistencia}
+===================================== 
+
+Row
+-------------------------------
+
+### Porcentaje de Reporte de Asistencia en Formato Digital
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+names(asistenciaPrim) <- c('Respuesta', 'Freq')
+asistenciaProp <-asistenciaPrim %>%
+  arrange(desc(asistenciaPrim$Freq)) %>%
+  mutate(prop = round(Freq*100/sum(Freq),1),
+         lab.ypos = cumsum(prop) - 0.5*prop)
+library(ggpubr)
+ggplot(asistenciaProp, aes(x='', y = prop, fill = Respuesta)) +
+  geom_bar(width = 1, stat = 'identity', color = 'white') +
+  geom_text(aes(y = lab.ypos, label = prop), color = 'white') +
+  coord_polar('y', start = 0) +
+  ggtitle('PRIMARIA') +
+  theme_void()
+
+```
+
+### Porcentaje de Reporte de Asistencia en Formato Digital
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+names(asistenciaSecu) <- c('Respuesta', 'Freq')
+asistenciaSecuProp <-asistenciaSecu %>%
+  arrange(desc(asistenciaSecu$Freq)) %>%
+  mutate(prop = round(Freq*100/sum(Freq),1),
+         lab.ypos = cumsum(prop) - 0.5*prop)
+library(ggpubr)
+ggplot(asistenciaSecuProp, aes(x='', y = prop, fill = Respuesta)) +
+  geom_bar(width = 1, stat = 'identity', color = 'white') +
+  geom_text(aes(y = lab.ypos, label = prop), color = 'white') +
+  coord_polar('y', start = 0) +
+  ggtitle('SECUNDARIA') +
+  theme_void()
+
+```
