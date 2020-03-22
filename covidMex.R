@@ -15,7 +15,8 @@ confirmados %>%
        title = "¿Qué edad tienen los infectados de SARS-CoV-2 en México?") +
   theme_light() + 
   theme(text = element_text(family = "Calibri"),
-        title = element_text(family = "Arial"))
+        title = element_text(family = "Arial")) +
+  ggsave('visualizations/edadConfirmados.png')
 
 ggplot() +
   geom_bar(aes(x = confirmados$ent, y = ..count..), fill = "#bb8fce") +
@@ -23,7 +24,8 @@ ggplot() +
        title = '¿Cuáles son los estados con mayor número de casos confirmados?') +
   theme_light() +
   theme(title = element_text(family = "Arial")) +
-  coord_flip()
+  coord_flip() +
+  ggsave('visualizations/edosCasos.png')
 
 ###### Procedencia de casos confirmados!
 procedencia <- confirmados %>%
@@ -36,7 +38,8 @@ ggplot(procedencia, aes(x = procedencia, y = count)) +
   geom_text(aes(label = count), vjust = -0.3) +
   labs(title = 'Procedencia de Casos Confirmados de COVID-19',
        x= '', y = 'Conteo', subtitle = 'Información al 21 de Marzo de 2020',
-       caption = 'Computational Analytic Resources for Health (CARhE)')
+       caption = 'Computational Analytic Resources for Health (CARhE)') +
+  ggsave('visualizations/procedenciaCasos.png')
 
 
 ######################################################
@@ -62,8 +65,8 @@ str(mexico)
 mexico$key <-  mdy(mexico$key)
 mexico$value <- as.integer(mexico$value)
 
-str(mexico$key)
-str(as.Date('2020-03-21'))
+#str(mexico$key)
+#str(as.Date('2020-03-21'))
 
 mexico$value[60]
 
@@ -74,10 +77,11 @@ ggplot(mexico, aes(x = key, y = value)) +
   scale_x_date(date_breaks = "2 day", date_labels = "%D") +
   theme(axis.text.x=element_text(angle=80, hjust=1)) +
   labs(title = 'Casos de COVID-19 Positivos en México por Día', x = '', y = 'Conteo', subtitle = 'Al Viernes 20 de Marzo de 2020') +
-  stat_smooth(
-    color = "#FC4E07", fill = "#FC4E07",
-    method = "loess"
-  )
+  #stat_smooth(
+  #  color = "#FC4E07", fill = "#FC4E07",
+  #  method = "loess"
+  #) +
+  ggsave('visualizations/tsMexico.png')
 
 
 ##################################################################################
@@ -111,7 +115,8 @@ ggplot(americas, aes(x = Date, y = Cases)) +
   theme_minimal() +
   labs(title = 'Confirmed Cases of SARS-COV-2 (COVID-19) in Latin-America',
        subtitle = 'Up to March 20th 2020',
-       caption = 'Using data from the John Hopkins Mapping nCov repository. \n By Computational Analytic Resources for Health')
+       caption = 'Using data from the John Hopkins Mapping nCov repository. \n By Computational Analytic Resources for Health') +
+  ggsave('visualizations/tsAmericas.png')
 
 
 ###################################################################
@@ -144,6 +149,7 @@ ggplot(ibero, aes(x = Date, y = Cases)) +
   theme_minimal() +
   labs(title = 'Confirmed Cases of SARS-COV-2 (COVID-19)',
        subtitle = 'Up to March 20th 2020',
-       caption = 'Using data from the John Hopkins Mapping nCov repository. \n By Computational Analytic Resources for Health (CARhE).')
+       caption = 'Using data from the John Hopkins Mapping nCov repository. \n By Computational Analytic Resources for Health (CARhE).') +
+  ggsave('visualizations/tsWorld.png')
 
 
