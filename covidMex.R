@@ -18,14 +18,50 @@ confirmados %>%
         title = element_text(family = "Arial")) +
   ggsave('visualizations/edadConfirmados.png')
 
-ggplot() +
-  geom_bar(aes(x = confirmados$ent, y = ..count..), fill = "#bb8fce") +
+####################################################
+# Casos por entidad federativa
+####################################################
+entidad <- confirmados %>%
+  group_by(ent) %>%
+  summarize(count = n()) %>%
+  as.data.frame()
+
+#install.packages('png')
+
+library(grid)
+library(gridExtra)
+library(png)
+
+get_png <- function(filename) {
+  grid::rasterGrob(png::readPNG(filename), interpolate = TRUE)
+}
+
+img <- readPNG('img/CARhE.png')
+
+img <- get_png("img/CARhE.png")
+
+ggplot(entidad, aes(x = ent, y = count)) +
+  geom_bar(stat = 'identity', fill = '#73C6B6', alpha = 0.8, color = 'grey40') +
+  geom_text(aes(label = count), vjust = 0.5, hjust = -0.1) +
   labs(x = 'Entidad Federativa', y = 'Casos',
-       title = '¿Cuáles son los estados con mayor número de casos confirmados?') +
-  theme_light() +
+       title = '¿Cuáles son los estados con mayor número de casos confirmados?',
+       subtitle = 'Al 22 de Marzo de 2020',
+       caption = 'Computational Analytic Resources for Health (CARhE)') +
   theme(title = element_text(family = "Arial")) +
+  theme_light() +
   coord_flip() +
-  ggsave('visualizations/edosCasos.png')
+  ggsave('visualizations/edosCasos.png', width = 750, height = 518, units = 'mm')
+  
+  
+  #annotation_custom(rasterGrob(img), 
+  #                  xmin=-3, xmax=0, 
+  #                  ymin=0.62*min(entidad$count)-0.5, ymax=0.62*min(entidad$count)+0.5)
+  
+
+  #gt <- ggplot_gtable(ggplot_build(ent))
+  #gt$layout$clip[gt$layout$name=="panel"] <- "off"
+  #grid.draw(gt)
+
 
 ###### Procedencia de casos confirmados!
 procedencia <- confirmados %>%
