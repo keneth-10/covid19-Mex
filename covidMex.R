@@ -1,22 +1,48 @@
 #devtools::install_github("pablorm296/covidMex")
 library(covidMex)
 library(tidyverse)
+library(showtext)
+
+#https://github.com/pablorm296/covidMex/
 
 #confirmados <- getData(type = 'confirmed', source = 'Serendipia')
 #confirmados <- getData(type = 'confirmed', date = "20/03/2020")
 confirmados <- getData(type = 'confirmed')
 
-confirmados %>%
-  mutate(GrupoEdad = cut(edad, breaks = c(seq(0, 80, by = 10), Inf))) %>%
-  ggplot() +
-  geom_bar(aes(x = GrupoEdad, y = ..count..), colour = "#CC7390", 
-           fill = "#CC7390", alpha = 0.5, na.rm = T) +
-  labs(x = "Grupo de Edad", y = "Casos",
-       title = "¿Qué edad tienen los infectados de SARS-CoV-2 en México?") +
-  theme_light() + 
-  theme(text = element_text(family = "Calibri"),
-        title = element_text(family = "Arial")) +
-  ggsave('visualizations/edadConfirmados.png')
+gpoEdad <- confirmados %>%
+  mutate(GrupoEdad = cut(edad, breaks = c(seq(0, 80, by = 5), Inf))) %>%
+  as.data.frame()
+
+gpoEdadCount <- gpoEdad %>%
+  group_by(GrupoEdad) %>%
+  summarise(count = n()) %>%
+  as.data.frame()
+
+font_add(family = "avenirnext", regular = "Avenir_Next.ttc")
+showtext_auto()
+
+ggplot(gpoEdadCount, aes(x = GrupoEdad, y = count)) +
+  geom_bar(stat = 'identity', fill = '#0096ff', alpha = 0.5, color = '#0096ff')+
+  geom_text(aes(label = count), vjust = - 0.5) +
+  labs(title = "Edad de Casos Positivos a COVID19 Reportados en México",
+       subtitle = 'Corte al 25 de Marzo de 2020',
+       caption = 'Calculado con datos oficiales publicados por Secretaría de Salud',
+       x = 'Grupos de Edad', y = 'Conteo') +
+  theme_light() +
+  theme(
+    text = element_text(family = "avenirnext")
+  )
+
+plot <- image_read('visualizations/edadCasos.png')
+logo_raw <- image_read('img/CARhE.png')
+logo <- logo_raw %>%
+  image_scale("350") %>% 
+  image_background("#FFFFFF", flatten = TRUE) %>%
+  image_border("#FFFFFF", "600x10") #%>%
+final_plot <- image_append(image_scale(c(plot, logo), "1000"), stack = TRUE)
+image_write(final_plot, 'visualizations/edadCasosLogo.png')
+
+names(confirmados)
 
 ####################################################
 # Casos por entidad federativa
@@ -31,37 +57,40 @@ entidad <- confirmados %>%
 library(grid)
 library(gridExtra)
 library(png)
+library(magick)
 
-get_png <- function(filename) {
-  grid::rasterGrob(png::readPNG(filename), interpolate = TRUE)
-}
 
-img <- readPNG('img/CARhE.png')
-
-img <- get_png("img/CARhE.png")
 
 ggplot(entidad, aes(x = ent, y = count)) +
-  geom_bar(stat = 'identity', fill = '#73C6B6', alpha = 0.8, color = 'grey40') +
+  geom_bar(stat = 'identity', fill = '#8e44ad', alpha = 0.8, color = 'grey60') +
   geom_text(aes(label = count), vjust = 0.5, hjust = -0.1) +
   labs(x = 'Entidad Federativa', y = 'Casos',
        title = '¿Cuáles son los estados con mayor número de casos confirmados?',
-       subtitle = 'Al 22 de Marzo de 2020',
-       caption = 'Computational Analytic Resources for Health (CARhE)') +
+       subtitle = 'Al 24 de Marzo de 2020',
+       caption = 'Datos oficiales publicados por Secretaría de Salud') +
   theme(title = element_text(family = "Arial")) +
   theme_light() +
   coord_flip() +
   ggsave('visualizations/edosCasos.png', width = 750, height = 518, units = 'mm')
   
-  
-  #annotation_custom(rasterGrob(img), 
-  #                  xmin=-3, xmax=0, 
-  #                  ymin=0.62*min(entidad$count)-0.5, ymax=0.62*min(entidad$count)+0.5)
-  
+#logo <- image_read('img/CARhE.png')  
+#ent
+#grid::grid.raster(logo, x = 0.07, y = 0.02, just = c('left', 'bottom'), width = unit(1.2, 'inches'))
 
-  #gt <- ggplot_gtable(ggplot_build(ent))
-  #gt$layout$clip[gt$layout$name=="panel"] <- "off"
-  #grid.draw(gt)
+#https://www.danielphadley.com/ggplot-logo/
 
+plot <- image_read('visualizations/edosCasos.png')
+logo_raw <- image_read('img/CARhE.png')
+
+logo <- logo_raw %>%
+  image_scale("350") %>% 
+  image_background("#F8F8F8", flatten = TRUE) %>%
+  image_border("#F8F8F8", "600x10") #%>%
+  #image_annotate("Powered By R", color = "white", size = 30, 
+  #               location = "+10+50", gravity = "northeast")
+
+final_plot <- image_append(image_scale(c(plot, logo), "900"), stack = TRUE)
+image_write(final_plot, 'visualizations/edosCasosLogo.png')
 
 ###### Procedencia de casos confirmados!
 procedencia <- confirmados %>%
@@ -125,9 +154,10 @@ ggplot(mexico, aes(x = key, y = value)) +
 ####################################################################################
 
 americas <- dat %>%
-  filter(dat$`Country/Region` %in% c('Chile', 'Mexico', 'Uruguay', 'Brazil','Costa Rica', 'Jamaica','Argentina','Peru')) %>%
+  filter(dat$`Country/Region` %in% c('Chile', 'Mexico', 'Uruguay', 'Brazil','Costa Rica', 'Jamaica','Argentina')) %>%
   gather(Country, Cases, `1/22/20`:`3/21/20`) %>%
   as.data.frame()
+
 
 names(americas) <- c('Country', 'Date', 'Cases')
 americas$Date <- mdy(americas$Date)
@@ -189,3 +219,4 @@ ggplot(ibero, aes(x = Date, y = Cases)) +
   ggsave('visualizations/tsWorld.png')
 
 
+covidWWSituation()
