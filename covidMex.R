@@ -7,10 +7,17 @@ library(showtext)
 
 #confirmados <- getData(type = 'confirmed', source = 'Serendipia')
 #confirmados <- getData(type = 'confirmed', date = "20/03/2020")
-confirmados <- getData(type = 'confirmed')
+#confirmados <- getData(type = 'confirmed')
+confirmados <- covidConfirmedMx()
+#confirmados <- getData(where = "Mexico", type = "confirmed", date = "today",
+#                       source = "Guzmart", neat = TRUE)
+confirmados <- getData(where = "Mexico", type = "confirmed", date = "today", 
+                           source = "Serendipia", neat = TRUE)
 
+
+# Utilizando herramientas del Tidyverse
 gpoEdad <- confirmados %>%
-  mutate(GrupoEdad = cut(edad, breaks = c(seq(0, 80, by = 5), Inf))) %>%
+  mutate(GrupoEdad = cut(Edad, breaks = c(seq(0, 80, by = 10), Inf))) %>%
   as.data.frame()
 
 gpoEdadCount <- gpoEdad %>%
@@ -48,7 +55,7 @@ names(confirmados)
 # Casos por entidad federativa
 ####################################################
 entidad <- confirmados %>%
-  group_by(ent) %>%
+  group_by(Estado) %>%
   summarize(count = n()) %>%
   as.data.frame()
 
@@ -61,7 +68,7 @@ library(magick)
 
 
 
-ggplot(entidad, aes(x = ent, y = count)) +
+ggplot(entidad, aes(x = Estado, y = count)) +
   geom_bar(stat = 'identity', fill = '#8e44ad', alpha = 0.8, color = 'grey60') +
   geom_text(aes(label = count), vjust = 0.5, hjust = -0.1) +
   labs(x = 'Entidad Federativa', y = 'Casos',
