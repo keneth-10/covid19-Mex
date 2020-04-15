@@ -1,0 +1,45 @@
+#Prediciendo los probables cofirmados en México en un periodo de 50 días tras el primer contagio
+#JONATHAN KENETH RODRIGUEZ BERNAL
+#Facultad de Ingeniería, Arquitectura y Diseño, UABC, Ensenada, México.
+
+#Datos oficialesles obtenidos de base de datos Johns Hopkins University 
+infectadoConfirm<-c(1,	4,5,	5,	5,	5,	5,	6,	6,	7,	7,	7,	8,	12,	12,	26,	41,	53,	82,	93,	118,	164,	203)
+dias<-c(1:23)
+
+#Visualizando los datos
+plot(infectadoConfirm~dias)
+
+#Realizando la tabla
+Mexico<-data.frame(dias,infectadoConfirm)
+#attach(basedatosmexico)
+
+#Generando Modelo 
+mod.exp<- lm(log(infectadoConfirm)~dias, data=Mexico)
+summary(mod.exp)
+
+#Proyectando a 50 dias despues del primer infectado (8 de marzo hasta el domingo 26 de Abril)
+val.temp<-seq(1,50)
+
+#Prediciendo
+probables.casos<-exp(predict(mod.exp,list(dias=val.temp)))
+
+#Visualizando la prediccion
+plot(val.temp,probables.casos, main = "Casos Predichos")
+
+
+datos.predichos<-data.frame(val.temp,probables.casos)
+datos.predichos
+
+#Valores de Referencia (Fue utilizado para evaluar la eficiencia del modelo)
+#32 datos #reference<-c(	0,	0,	1,	4,	5,	5,	5,	5,	5,	6,	6,	7,	7,	7,	8,	12,	12,	26,	41,	53,	82,	93,	118,	164,	203,	251,	316,	367,	405,	475,	585,	717)
+
+#Integrando los valores de referencia con los predicho. Es importante que para que se comparen se introduzcan la misma cantidad de datos en los vectores
+# datos.integrados<-data.frame(val.temp, reference, probables.casos) #La proyección debe contener 32 datos para poder almacenarlos en un data.frame y realizar la evaluación de la eficiencia del modelo.
+# datos.integrados 
+
+
+#Graficando Predicción 
+plot(val.temp,probables.casos, col="blue", xlab = "Días", ylab = "Detectados")
+
+
+
